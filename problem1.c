@@ -17,16 +17,21 @@
 // where GROUP is your group number and NAME is your full name.
 // For example, if you have 3 semaphores, you can define them as:
 // semaphore_1_GROUP_NAME, semaphore_2_GROUP_NAME, semaphore_3_GROUP_NAME ...
-#define PARAM_ACCESS_SEMAPHORE "/param_access_semaphore_GROUP_NAME"
+#define PARAM_ACCESS_SEMAPHORE "/param_access_semaphore_GROUP_8"
+#define NUM_THREADS 9
 
 long int global_param = 0;
+
+
+int numbers_group_8[NUM_THREADS];
+sem_t semaphores_group_8[NUM_THREADS];
 
 /**
 * This function should be implemented by yourself. It must be invoked
 * in the child process after the input parameter has been obtained.
 * @parms: The input parameter from the terminal.
 */
-void multi_threads_run(long int input_param);
+void multi_threads_run(long int input_param, int time, int flag);
 
 int main(int argc, char **argv)
 {
@@ -125,8 +130,19 @@ int main(int argc, char **argv)
          * which can be obtained from one of the three variables,
          * i.e., global_param, local_param, shared_param_c[0].
          */
-		// multi_threads_run(xxx);
+		// multi_threads_run(shared_param_c[0]);
 
+
+
+		long int num_of_operations_group_8 = strtol(argv[2], NULL, 10);
+		int flag = 0;
+		int temp = (int)(num_of_operations_group_8);
+		for (int i = 0; i < temp; i++) {
+			if (i = temp - 1) {
+				flag = -1;
+			}
+			multi_threads_run(shared_param_c[0], i , flag);
+		}
 		/* each process should "detach" itself from the 
 		   shared memory after it is used */
 
@@ -190,7 +206,79 @@ int main(int argc, char **argv)
 * in the child process after the input parameter has been obtained.
 * @parms: The input parameter from terminal.
 */
-void multi_threads_run(long int input_param)
+
+
+void *thread_function(int res) {
+	int thread_id = res;
+
+	int digit1 = thread_id;
+	int digit2 = thread_id + 1;
+	if (digit2 == 9) {
+		digit2 = 0;
+	}
+
+	while(1) {
+		int result1 = sem_trywait(&semaphores_group_8[digit1]);
+		int result2 = sem_trywait(&semaphores_group_8[digit2]);
+
+		if (result1 == 0 && result2 == 0) {
+			numbers_group_8[digit1] = (numbers_group_8[digit1] + 1) % 10;
+			numbers_group_8[digit2] = (numbers_group_8[digit2] + 1) % 10;
+
+			sem_post(&semaphores_group_8[digit1]);
+			sem_post(&semaphores_group_8[digit2]);
+			break; 
+		}
+		else {
+			if (result1 == 0) {
+				sem_post(&semaphores_group_8[digit1]);
+			}
+			if (result2 == 0) {
+				sem_post(&semaphores_group_8[digit2]);
+			}
+			usleep(100);
+		}
+	} 
+	pthread_exit(NULL);
+}
+
+
+
+void multi_threads_run(long int input_param, int time, int flag)
 {
 	// Add your code here
+	pthread_t threads_group_8[NUM_THREADS];
+	int temp = (int)(input_param);
+	int index = 8;
+	if (time == 0 ) {
+		while(temp) {
+			int result = temp % 10;
+			numbers_group_8[index] = result;
+			temp = temp / 10;
+			index--;
+		}
+	}
+	for (int i = 0; i < NUM_THREADS; i++) {
+		sem_init(&semaphores_group_8[i], 0, 1);
+	}
+	for (int i = 0; i < NUM_THREADS; i++) {
+		pthread_create(&threads_group_8[i], NULL, thread_function, i);
+	}
+	for (int i = 0; i < NUM_THREADS; i++) {
+		pthread_join(threads_group_8[i], NULL);
+	}
+	for (int i = 0; i < NUM_THREADS; i++) {
+		sem_close(&semaphores_group_8[i]);
+	}
+	int output = 0;
+	if (flag == -1) {
+		for (int i = 0; i < NUM_THREADS; i++) {
+			output += numbers_group_8[i];
+			if (i != numbers_group_8 - 1) {
+				output *= 10;
+			}
+		}
+		saveResult("p1_result.txt", output);
+	}
+
 }
