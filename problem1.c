@@ -278,6 +278,7 @@ void multi_threads_run(long int input_param, int time, int flag)
 				output *= 10;
 			}
 		}
+		printf("Output: %d\n", output);
 		saveResult("p1_result.txt", output);
 	}
 
