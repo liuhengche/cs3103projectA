@@ -150,11 +150,11 @@ int main(int argc, char **argv) {
 		stop_ptr_parent_group_8 = (int *)shmat(shmid_group_8_file_end, 0, 0);
 		stop_ptr_parent_group_8[0] = 0;
 
-		for (int i = 0; i < filecount; i++) {
+		for (int i = 0; i < filecount_group_8; i++) {
 			sem_wait(write_lock);
-			FILE *file = fopen(filelist[i], "r");
+			FILE *file = fopen(filelist_group_8[i], "r");
 			if (file == NULL) {
-				printf("Error opening file %s\n", filelist[i]);
+				printf("Error opening file %s\n", filelist_group_8[i]);
 				exit(1);
 			}
 			else {
@@ -257,31 +257,31 @@ void traverseDir(char *dir_name, char filelist[][100], int* count){
    
     // Implement your code here to find out
     // all textfiles in the source directory.
-	DIR *dir;
-	struct dirent *entry;
+	// DIR *dir;
+	// struct dirent *entry;
 	
-	if (!(dir = opendir(dir_name))) {
-		return;
-	}
+	// if (!(dir = opendir(dir_name))) {
+	// 	return;
+	// }
 
-	while(entry = readdir(dir)!=NULL) {
-		char path[1024];
-		if (entry->d_type == DT_DIR) { // if it's directory
-			if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
-				continue;
-			}
-			snprintf(path, sizeof(path), "%s/%s", dir_name, entry->d_name);
-			traverseDir(path, filelist, count);
-		}
-		else {
-			if (strstr(entry->d_name, ".txt") != NULL) {
-				snprintf(path, sizeof(path), "%s/%s", dir_name, entry->d_name);
-				strcpy(filelist[*count], path);
-				(*count)++;
-			}
-		}
+	// while(entry = readdir(dir)!=NULL) {
+	// 	char path[1024];
+	// 	if (entry->d_type == DT_DIR) { // if it's directory
+	// 		if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+	// 			continue;
+	// 		}
+	// 		snprintf(path, sizeof(path), "%s/%s", dir_name, entry->d_name);
+	// 		traverseDir(path, filelist, count);
+	// 	}
+	// 	else {
+	// 		if (strstr(entry->d_name, ".txt") != NULL) {
+	// 			snprintf(path, sizeof(path), "%s/%s", dir_name, entry->d_name);
+	// 			strcpy(filelist[*count], path);
+	// 			(*count)++;
+	// 		}
+	// 	}
 
-	}
-	closedir(dir);
+	// }
+	// closedir(dir);
 
 }
