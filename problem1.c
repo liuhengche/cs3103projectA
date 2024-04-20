@@ -11,11 +11,9 @@
 #include <fcntl.h>			// This is necessary for using semaphore
 #include <pthread.h>        // This is necessary for Pthread          
 #include <string.h>
-#include <assert.h>
-#include <dirent.h>
+
 #include "helpers.h"
-#include <sys/stat.h>
-#include <linux/stat.h>
+
 // To prevent multiple students to define semaphore with the same name, 
 // please always define the name of a semaphore ending with "_GROUP_NAME"
 // where GROUP is your group number and NAME is your full name.
@@ -26,8 +24,19 @@
 
 long int global_param = 0;
 
+#define DIGIT_ONE "DIGIT_ONE"
+#define DIGIT_TWO "DIGIT_TWO"
+#define DIGIT_THREE "DIGIT_THREE"
+#define DIGIT_FOUR "DIGIT_FOUR"
+#define DIGIT_FIVE "DIGIT_FIVE"
+#define DIGIT_SIX "DIGIT_SIX"
+#define DIGIT_SEVEN "DIGIT_SEVEN"
+#define DIGIT_EIGHT "DIGIT_EIGHT"
+#define DIGIT_NINE "DIGIT_NINE"
 
-int numbers_group_8[NUM_THREADS];
+
+
+int digits_group_8[NUM_THREADS + 5];
 sem_t semaphores_group_8[NUM_THREADS];
 
 /**
@@ -35,7 +44,7 @@ sem_t semaphores_group_8[NUM_THREADS];
 * in the child process after the input parameter has been obtained.
 * @parms: The input parameter from the terminal.
 */
-void multi_threads_run(long int input_param, int time, int flag);
+void multi_threads_run(long int input_param, long int loop_time, int time_to_exit_group_8);
 
 int main(int argc, char **argv)
 {
@@ -137,18 +146,22 @@ int main(int argc, char **argv)
 		// multi_threads_run(shared_param_c[0]);
 
 
-
-		long int num_of_operations_group_8 = strtol(argv[2], NULL, 10);
-		int flag = 0;
-		int temp = (int)(num_of_operations_group_8);
-		for (int i = 0; i < temp; i++) {
-			if (i = temp - 1) {
-				flag = -1;
-			}
-			multi_threads_run(shared_param_c[0], i , flag);
-		}
+		// rewrite this logic; it is not correct
+		// long int num_of_operations_group_8 = strtol(argv[2], NULL, 10);
+		// int flag = 0;
+		// int temp = (int)(num_of_operations_group_8);
+		// for (int i = 0; i < temp; i++) {
+		// 	if (i = temp - 1) {
+		// 		flag = -1;
+		// 	}
+		// 	multi_threads_run(shared_param_c[0], i , flag);
+		// }
 		/* each process should "detach" itself from the 
 		   shared memory after it is used */
+
+		   long int loop_time = strtol(argv[2], NULL, 10);
+		   int time_to_exit_group_8 = -1;
+		   multi_threads_run(shared_param_c[0], loop_time, time_to_exit_group_8);
 
 		shmdt(shared_param_c);
 
@@ -212,77 +225,191 @@ int main(int argc, char **argv)
 */
 
 
-void *thread_function(int res) {
-	int thread_id = res;
+void *thread_function(void *para) {
+	long int *arr = (long int *)para;
+	long int *traverse = arr;
+	int relative_pos_of_time_to_exit = 0;
+	while(*traverse != -1) {
+		traverse++;
+		relative_pos_of_time_to_exit++;
+	}
+
+	long int loop_time = *(traverse + 1);
+	int thread_id = 9 - relative_pos_of_time_to_exit;
 
 	int digit1 = thread_id;
 	int digit2 = thread_id + 1;
 	if (digit2 == 9) {
-		digit2 = 0;
+		//digit2 = 0;
+		digit2 = digit1;
+		digit1 = 0;
 	}
 
-	while(1) {
-		int result1 = sem_trywait(&semaphores_group_8[digit1]);
-		int result2 = sem_trywait(&semaphores_group_8[digit2]);
+	sem_wait(&semaphores_group_8[digit1]);
+	sem_wait(&semaphores_group_8[digit2]);
 
-		if (result1 == 0 && result2 == 0) {
-			numbers_group_8[digit1] = (numbers_group_8[digit1] + 1) % 10;
-			numbers_group_8[digit2] = (numbers_group_8[digit2] + 1) % 10;
 
-			sem_post(&semaphores_group_8[digit1]);
-			sem_post(&semaphores_group_8[digit2]);
-			break; 
-		}
-		else {
-			if (result1 == 0) {
-				sem_post(&semaphores_group_8[digit1]);
-			}
-			if (result2 == 0) {
-				sem_post(&semaphores_group_8[digit2]);
-			}
-			usleep(100);
-		}
-	} 
-	pthread_exit(NULL);
+	for (int i = 0; i < loop_time; i++) {
+		digits_group_8[digit1] = (digits_group_8[digit1] + 1) % 10;
+		digits_group_8[digit2] = (digits_group_8[digit2] + 1) % 10;
+
+
+	}
+
+	sem_post(&semaphores_group_8[digit1]);
+	sem_post(&semaphores_group_8[digit2]);
+
+
+
+
+	
+
+	
+	// int thread_id = res;
+
+	// int digit1 = thread_id;
+	// int digit2 = thread_id + 1;
+	// if (digit2 == 9) {
+	// 	digit2 = 0;
+	// }
+
+	// while(1) {
+	// 	int result1 = sem_trywait(&semaphores_group_8[digit1]);
+	// 	int result2 = sem_trywait(&semaphores_group_8[digit2]);
+
+	// 	if (result1 == 0 && result2 == 0) {
+	// 		numbers_group_8[digit1] = (numbers_group_8[digit1] + 1) % 10;
+	// 		numbers_group_8[digit2] = (numbers_group_8[digit2] + 1) % 10;
+
+	// 		sem_post(&semaphores_group_8[digit1]);
+	// 		sem_post(&semaphores_group_8[digit2]);
+	// 		break; 
+	// 	}
+	// 	else {
+	// 		if (result1 == 0) {
+	// 			sem_post(&semaphores_group_8[digit1]);
+	// 		}
+	// 		if (result2 == 0) {
+	// 			sem_post(&semaphores_group_8[digit2]);
+	// 		}
+	// 		usleep(100);
+	// 	}
+	// } 
+	// pthread_exit(NULL);
+	return NULL;
 }
 
 
 
-void multi_threads_run(long int input_param, int time, int flag)
+void multi_threads_run(long int input_param, long int loop_time, int time_to_exit_group_8)
 {
 	// Add your code here
+
+	//first we need to create the semaphores
+	sem_unlink(DIGIT_ONE);
+	sem_unlink(DIGIT_TWO);
+	sem_unlink(DIGIT_THREE);
+	sem_unlink(DIGIT_FOUR);
+	sem_unlink(DIGIT_FIVE);
+	sem_unlink(DIGIT_SIX);
+	sem_unlink(DIGIT_SEVEN);
+	sem_unlink(DIGIT_EIGHT);
+	sem_unlink(DIGIT_NINE);
+
+	semaphores_group_8[0] = sem_open(DIGIT_ONE, O_CREAT|O_EXCL, S_IRUSR|S_IWUSR, 1);
+	semaphores_group_8[1] = sem_open(DIGIT_TWO, O_CREAT|O_EXCL, S_IRUSR|S_IWUSR, 1);
+	semaphores_group_8[2] = sem_open(DIGIT_THREE, O_CREAT|O_EXCL, S_IRUSR|S_IWUSR, 1);
+	semaphores_group_8[3] = sem_open(DIGIT_FOUR, O_CREAT|O_EXCL, S_IRUSR|S_IWUSR, 1);
+	semaphores_group_8[4] = sem_open(DIGIT_FIVE, O_CREAT|O_EXCL, S_IRUSR|S_IWUSR, 1);
+	semaphores_group_8[5] = sem_open(DIGIT_SIX, O_CREAT|O_EXCL, S_IRUSR|S_IWUSR, 1);
+	semaphores_group_8[6] = sem_open(DIGIT_SEVEN, O_CREAT|O_EXCL, S_IRUSR|S_IWUSR, 1);
+	semaphores_group_8[7] = sem_open(DIGIT_EIGHT, O_CREAT|O_EXCL, S_IRUSR|S_IWUSR, 1);
+	semaphores_group_8[8] = sem_open(DIGIT_NINE, O_CREAT|O_EXCL, S_IRUSR|S_IWUSR, 1);
+
 	pthread_t threads_group_8[NUM_THREADS];
-	int temp = (int)(input_param);
-	int index = 8;
-	if (time == 0 ) {
-		while(temp) {
-			int result = temp % 10;
-			numbers_group_8[index] = result;
-			temp = temp / 10;
-			index--;
-		}
-	}
+
+	// store the nine digits of the input
 	for (int i = 0; i < NUM_THREADS; i++) {
-		sem_init(&semaphores_group_8[i], 0, 1);
+		int result = input_param % 10;
+		digits_group_8[8-i] = result;
+		input_param = input_param / 10;
 	}
+	digits_group_8[9] = time_to_exit_group_8;
+	digits_group_8[10] = loop_time;
+
 	for (int i = 0; i < NUM_THREADS; i++) {
-		pthread_create(&threads_group_8[i], NULL, thread_function, i);
+		pthread_create(&threads_group_8[i], NULL, thread_function, &digits_group_8[i]);
 	}
+
 	for (int i = 0; i < NUM_THREADS; i++) {
 		pthread_join(threads_group_8[i], NULL);
 	}
-	for (int i = 0; i < NUM_THREADS; i++) {
-		sem_close(&semaphores_group_8[i]);
-	}
+
+
+	// pthread_t threads_group_8[NUM_THREADS];
+	// int temp = (int)(input_param);
+	// int index = 8;
+	// if (time == 0 ) {
+	// 	while(temp) {
+	// 		int result = temp % 10;
+	// 		digits_group_8[index] = result;
+	// 		temp = temp / 10;
+	// 		index--;
+	// 	}
+	// }
+	// for (int i = 0; i < NUM_THREADS; i++) {
+	// 	sem_init(&semaphores_group_8[i], 0, 1);
+	// }
+	// for (int i = 0; i < NUM_THREADS; i++) {
+	// 	pthread_create(&threads_group_8[i], NULL, thread_function, i);
+	// }
+	// for (int i = 0; i < NUM_THREADS; i++) {
+	// 	pthread_join(threads_group_8[i], NULL);
+	// }
+	// for (int i = 0; i < NUM_THREADS; i++) {
+	// 	sem_close(&semaphores_group_8[i]);
+	// }
+	// int output = 0;
+	// if (flag == -1) {
+	// 	for (int i = 0; i < NUM_THREADS; i++) {
+	// 		output += digits_group_8[i];
+	// 		if (i != digits_group_8 - 1) {
+	// 			output *= 10;
+	// 		}
+	// 	}
+	// 	saveResult("p1_result.txt", output);
+	// }
+
+	//close the semaphores
+	sem_close(semaphores_group_8[0]);
+	sem_close(semaphores_group_8[1]);
+	sem_close(semaphores_group_8[2]);
+	sem_close(semaphores_group_8[3]);
+	sem_close(semaphores_group_8[4]);
+	sem_close(semaphores_group_8[5]);
+	sem_close(semaphores_group_8[6]);
+	sem_close(semaphores_group_8[7]);
+	sem_close(semaphores_group_8[8]);
+
+	sem_unlink(DIGIT_ONE);
+	sem_unlink(DIGIT_TWO);
+	sem_unlink(DIGIT_THREE);
+	sem_unlink(DIGIT_FOUR);
+	sem_unlink(DIGIT_FIVE);
+	sem_unlink(DIGIT_SIX);
+	sem_unlink(DIGIT_SEVEN);
+	sem_unlink(DIGIT_EIGHT);
+	sem_unlink(DIGIT_NINE);
+
 	int output = 0;
-	if (flag == -1) {
-		for (int i = 0; i < NUM_THREADS; i++) {
-			output += numbers_group_8[i];
-			if (i != numbers_group_8 - 1) {
-				output *= 10;
-			}
+	for (int i = 0; i < NUM_THREADS; i++) {
+		output += digits_group_8[i];
+		if (i != NUM_THREADS - 1) {
+			output *= 10;
 		}
-		saveResult("p1_result.txt", output);
 	}
+	printf("Output: %d\n", output);
+	saveResult("p1_result.txt", output);
+
 
 }
