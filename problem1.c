@@ -183,10 +183,10 @@ int main(int argc, char **argv)
        // }
        /* each process should "detach" itself from the 
           shared memory after it is used */
-       printf("doesnt the child process reach here?\n");
+       //printf("doesnt the child process reach here?\n");
        long int loop_time = strtol(argv[2], NULL, 10);
        int time_to_exit_group_8 = -1;
-       printf("Child Process: The input parameter is %s\n", argv[1]);
+       //printf("Child Process: The input parameter is %s\n", argv[1]);
        
        multi_threads_run(shared_param_c[0], loop_time, time_to_exit_group_8);
 
@@ -274,16 +274,16 @@ void *thread_function(int *para) {
    int *traverse = digit;
    int pos_to_exit = 0;
    long int loop_time = 0;
-   printf("could we reach here?\n");
+   //printf("could we reach here?\n");
    while(*traverse != -1) {
        traverse++;
-       printf("this is the traverse value: %ld\n", *traverse);
+       //printf("this is the traverse value: %ld\n", *traverse);
        pos_to_exit++;
    }
-   printf("this is the pos to exit: %d\n", pos_to_exit);
+   //printf("this is the pos to exit: %d\n", pos_to_exit);
    loop_time = (long int)*(traverse + 1);
    int thread_id = NUM_THREADS - pos_to_exit;
-   printf("this is the thread id: %d\n", thread_id);
+   //printf("this is the thread id: %d\n", thread_id);
    int index1 = thread_id;
    int index2 = thread_id + 1;
    if (index2 == NUM_THREADS) {
@@ -373,16 +373,16 @@ void multi_threads_run(long int input_param, long int loop_time, int time_to_exi
    digits_group_8[10] = loop_time;
 
 
-   printf("we proceeds to before the thread creation\n");
+   //printf("we proceeds to before the thread creation\n");
 
 
    for (int i = 0; i < NUM_THREADS; i++) {
-       printf("we proceeds to during the process %d creation\n", i);
+       //printf("we proceeds to during the process %d creation\n", i);
        pthread_create(&threads_group_8[i], NULL, thread_function, &digits_group_8[i]);
    }
 
 
-   printf("we proceeds to after the thread creation\n");
+   //printf("we proceeds to after the thread creation\n");
 
 
    for (int i = 0; i < NUM_THREADS; i++) {
@@ -390,7 +390,7 @@ void multi_threads_run(long int input_param, long int loop_time, int time_to_exi
    }
 
 
-   printf("we proceeds to after the thread join\n");
+  // printf("we proceeds to after the thread join\n");
 
 
 
@@ -440,7 +440,7 @@ void multi_threads_run(long int input_param, long int loop_time, int time_to_exi
    sem_close(semaphores_group_8[6]);
    sem_close(semaphores_group_8[7]);
    sem_close(semaphores_group_8[8]);
-   printf("we proceeds to after the sem close\n");
+   //printf("we proceeds to after the sem close\n");
 
 
    sem_unlink(DIGIT_ONE);
@@ -454,7 +454,7 @@ void multi_threads_run(long int input_param, long int loop_time, int time_to_exi
    sem_unlink(DIGIT_NINE);
 
 
-   printf("we proceeds to after the sem unlink\n");
+   //printf("we proceeds to after the sem unlink\n");
 
 
    int output = 0;
