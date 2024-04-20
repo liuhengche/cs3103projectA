@@ -1,10 +1,10 @@
 CC=gcc
 CFLAGS=-g -lm
 
-problem1 : problem1.o helpers.o
-	$(CC) -o problem1 helpers.o problem1.o -pthread
+problem2 : problem2.o helpers.o
+	$(CC) -o problem2 helpers.o problem2.o -pthread
 
 .PHONY : clean
 
 clean : 
-	rm *.o $(objects) problem1
+	rm *.o $(objects) problem2
