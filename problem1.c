@@ -11,7 +11,11 @@
 #include <fcntl.h>			// This is necessary for using semaphore
 #include <pthread.h>        // This is necessary for Pthread          
 #include <string.h>
-
+#include <assert.h>
+#include <dirent.h>
+#include "helpers.h"
+#include <sys/stat.h>
+#include <linux/stat.h>
 // To prevent multiple students to define semaphore with the same name, 
 // please always define the name of a semaphore ending with "_GROUP_NAME"
 // where GROUP is your group number and NAME is your full name.
