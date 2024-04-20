@@ -239,7 +239,7 @@ int main(int argc, char **argv) {
 		printf("file coutn: %d\n", filecount_group_8);
 		printf("Child process: Total number of words in all files: %d\n", tot_count_group_8);
 		printf("Child process: Total number of words in all files: %d\n", tot_count_group_8 + filecount_group_8);
-		saveResult("p2_result.txt", tot_count_group_8);
+		saveResult("p2_result.txt", tot_count_group_8 + filecount_group_8);
 
 
 		printf("Child process: Finished.\n");
