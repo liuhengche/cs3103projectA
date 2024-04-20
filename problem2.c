@@ -105,7 +105,7 @@ int main(int argc, char **argv) {
 	int *filecount_ptr_group_8 = &filecount_group_8;
 
 
-	// create the filestack
+	// create the filestack to do bfs traversal
 	initStack();
 
 
@@ -205,20 +205,40 @@ int main(int argc, char **argv) {
 		shared_memory_ptr_child_group_8 = (char *)shmat(shmid_group_8, 0, 0);
 		stop_ptr_child_group_8 = (int *)shmat(shmid_group_8_file_end, 0, 0);
 
-		while (1) {
+		// below is incorrect because it waits for the read lock even if it needs to exit
+		/* while (1) {
 			sem_wait(read_lock);
 			if (stop_ptr_child_group_8[0] == 1) {
 				break;
 			}
 			// count the number of words in the shared memory
-			tot_count_group_8 += wordCount(shared_memory_ptr_child_group_8);
+			tot_count_group_8 += wordCount(shared_memory_ptr_child_group_8) - 1;
+			sem_post(write_lock);
+		} */
+
+		/* sem_wait(read_lock);
+		while (1) {
+			if (stop_ptr_child_group_8[0] == 1) {
+				break;
+			}
+			sem_wait(read_lock);
+			// count the number of words in the shared memory
+			tot_count_group_8 += wordCount(shared_memory_ptr_child_group_8) - 1;
+			sem_post(write_lock);
+			
+		} */
+		sem_wait(read_lock);
+		while(stop_ptr_child_group_8[0] == 0) {
+			sem_wait(read_lock);
+			tot_count_group_8 += wordCount(shared_memory_ptr_child_group_8) - 1;
 			sem_post(write_lock);
 		}
-
 		shmdt(shared_memory_ptr_child_group_8);
 		shmdt(stop_ptr_child_group_8);
 
+		printf("file coutn: %d\n", filecount_group_8);
 		printf("Child process: Total number of words in all files: %d\n", tot_count_group_8);
+		printf("Child process: Total number of words in all files: %d\n", tot_count_group_8 + filecount_group_8);
 		saveResult("p2_result.txt", tot_count_group_8);
 
 
@@ -237,6 +257,8 @@ int main(int argc, char **argv) {
 	// You can add some code here to do some post-processing after fork.
 	/////////////////////////////////////////////////
 
+
+	// releasing the shared memory
 	shmctl(shmid_group_8, IPC_RMID, 0);
 	shmctl(shmid_group_8_file_end, IPC_RMID, 0);
 	sem_close(read_lock);
@@ -257,31 +279,48 @@ void traverseDir(char *dir_name, char filelist[][100], int* count){
    
     // Implement your code here to find out
     // all textfiles in the source directory.
-	// DIR *dir;
-	// struct dirent *entry;
+
+	DIR *dir;
+	struct dirent *entry;
 	
-	// if (!(dir = opendir(dir_name))) {
-	// 	return;
-	// }
+	
+	if (!(dir = opendir(dir_name))) {
+	 	return;
+	}
 
-	// while(entry = readdir(dir)!=NULL) {
-	// 	char path[1024];
-	// 	if (entry->d_type == DT_DIR) { // if it's directory
-	// 		if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
-	// 			continue;
-	// 		}
-	// 		snprintf(path, sizeof(path), "%s/%s", dir_name, entry->d_name);
-	// 		traverseDir(path, filelist, count);
-	// 	}
-	// 	else {
-	// 		if (strstr(entry->d_name, ".txt") != NULL) {
-	// 			snprintf(path, sizeof(path), "%s/%s", dir_name, entry->d_name);
-	// 			strcpy(filelist[*count], path);
-	// 			(*count)++;
-	// 		}
-	// 	}
+	while((entry = readdir(dir))!=NULL) {
+		char path[1024];
+		struct stat statbuf;
+		char current_file_group_8[1024];
+		snprintf(current_file_group_8, sizeof(current_file_group_8), "%s/%s", dir_name, entry->d_name);
+		if (stat(current_file_group_8, &statbuf) == -1) {
+			printf("Error getting file information\n");
+			exit(-1);
+		}
+	 	if (S_ISDIR(statbuf.st_mode)) { // if it's directory
+	 		if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+				continue;
+	 		}
+	 		snprintf(path, sizeof(path), "%s/%s", dir_name, entry->d_name);
+	 		traverseDir(path, filelist, count);
+	 	}
+	 	else {
+			if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+				continue;
+	 		}
+	 		if (validateTextFile(entry->d_name) == 1){
+	 			snprintf(path, sizeof(path), "%s/%s", dir_name, entry->d_name);
+	 			strcpy(filelist[*count], path);
+	 			(*count)++;
+	 		}
+	 	}
 
-	// }
-	// closedir(dir);
+	 }
+	 closedir(dir);
+
+
+
+
+
 
 }
